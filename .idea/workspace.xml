@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="db61961f-d1f1-4d67-92a1-573c87a9dad1" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/src/range_set.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/range_set.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/range_set.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -36,8 +34,8 @@
       <file leaf-file-name="range_set.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/range_set.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="201">
-              <caret line="32" column="9" selection-start-line="32" selection-start-column="9" selection-end-line="32" selection-end-column="9" />
+            <state relative-caret-position="393">
+              <caret line="153" selection-start-line="153" selection-end-line="153" />
             </state>
           </provider>
         </entry>
@@ -144,13 +142,45 @@
       </list>
     </option>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Cargo Command.Test range_set::test::test_add_multiple">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     </configuration>
     <configuration name="Run ets" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="run --package ets --bin ets" />
+      <option name="nocapture" value="true" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+    </configuration>
+    <configuration name="Test range_set::test::test_add_multiple" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package ets --bin ets range_set::test::test_add_multiple -- --exact" />
+      <option name="nocapture" value="true" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+    </configuration>
+    <configuration name="Test range_set::test::test_add_single" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package ets --bin ets range_set::test::test_add_single -- --exact" />
+      <option name="nocapture" value="true" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+    </configuration>
+    <configuration name="Test range_set::test::test_add_single_range" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package ets --bin ets range_set::test::test_add_single_range -- --exact" />
+      <option name="nocapture" value="true" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+    </configuration>
+    <configuration name="Test range_set::test::test_create" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package ets --bin ets range_set::test::test_create -- --exact" />
       <option name="nocapture" value="true" />
       <option name="backtrace" value="SHORT" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -194,8 +224,19 @@
       <properties />
       <listeners />
     </configuration>
+    <list>
+      <item itemvalue="Cargo Command.Run ets" />
+      <item itemvalue="Cargo Command.Test range_set::test::test_create" />
+      <item itemvalue="Cargo Command.Test range_set::test::test_add_single" />
+      <item itemvalue="Cargo Command.Test range_set::test::test_add_single_range" />
+      <item itemvalue="Cargo Command.Test range_set::test::test_add_multiple" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo Command.Test range_set::test::test_add_multiple" />
+        <item itemvalue="Cargo Command.Test range_set::test::test_add_single_range" />
+        <item itemvalue="Cargo Command.Test range_set::test::test_add_single" />
+        <item itemvalue="Cargo Command.Test range_set::test::test_create" />
         <item itemvalue="Cargo Command.Run ets" />
       </list>
     </recent_temporary>
@@ -369,8 +410,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/range_set.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="201">
-          <caret line="32" column="9" selection-start-line="32" selection-start-column="9" selection-end-line="32" selection-end-column="9" />
+        <state relative-caret-position="393">
+          <caret line="153" selection-start-line="153" selection-end-line="153" />
         </state>
       </provider>
     </entry>
