@@ -11,6 +11,7 @@ use std::path::PathBuf;
 
 mod config;
 mod file_utils;
+mod range_set;
 
 use config::Configuration;
 use file_utils::{recurse_dir, hash_file};
