@@ -24,12 +24,8 @@ fn main() {
     let files = recurse_dir(config.root_dir);
 
     for file in files {
-        let hash_res = hash_file(file.clone());
+        let hash = hash_file(file.clone());
 
-        if hash_res.is_none() {
-            continue;
-        }
-
-        println!("{:?}: {}", file, hash_res.unwrap());
+        println!("{:?}: {}", file, hash);
     }
 }

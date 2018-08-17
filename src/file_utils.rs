@@ -21,18 +21,19 @@ pub fn recurse_dir(path: PathBuf) -> Vec<PathBuf> {
     return files;
 }
 
-pub fn hash_file(file_path: PathBuf) -> Option<String> {
+pub fn hash_file(file_path: PathBuf) -> String {
     let mut hasher = Sha512::new();
 
     let file_res = File::open(file_path.clone());
 
     if let Err(e) = file_res {
-        return Some( format!("{}", e));
+        return format!("{}", e);
     }
 
     let mut file = file_res.unwrap();
     let mut not_text = false;
 
+    // try to hash the file line-by-line so we can exclude lines if needed
     for line_res in BufReader::new(file.try_clone().unwrap()).lines() {
         if line_res.is_err() {
             not_text = true;
@@ -50,13 +51,13 @@ pub fn hash_file(file_path: PathBuf) -> Option<String> {
         let hash_res = Sha512::digest_reader(&mut file);
 
         if let Err(e) = hash_res {
-            return Some(format!("{}", e));
+            return format!("{}", e);
         }
 
-        return Some(format!("{:x}", hash_res.unwrap()));
+        return format!("{:x}", hash_res.unwrap());
     } else {
         let hash = hasher.result();
 
-        return Some(format!("{:x}", hash));
+        return format!("{:x}", hash);
     }
 }
