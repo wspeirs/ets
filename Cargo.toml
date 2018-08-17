@@ -7,3 +7,5 @@ authors = ["William Speirs <wspeirs@datto.com>"]
 clap = "2.32"
 log = "0.4"
 simplelog = "0.5"
+walkdir = "2.2"
+rust-crypto = "0.2"

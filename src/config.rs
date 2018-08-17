@@ -1,10 +1,16 @@
 use clap::{Arg, App, SubCommand};
 
 use std::io::Error as IOError;
+use std::path::PathBuf;
 
 
 pub struct Configuration {
-    update: bool
+    update: bool,
+    pub root_dir: PathBuf,
+    data_dir: PathBuf,
+    report_dir: PathBuf,
+    report_proc: Option<PathBuf>,
+
 }
 
 
@@ -36,6 +42,12 @@ impl Configuration {
             debug!("We are updating the database");
         }
 
-        return Ok(Configuration { update: update});
+        return Ok(Configuration {
+            update: update,
+            root_dir: PathBuf::from("/etc"),
+            data_dir: PathBuf::from("/tmp/ets_data"),
+            report_dir: PathBuf::from("/tmp/ets_report"),
+            report_proc: None
+        });
     }
 }
