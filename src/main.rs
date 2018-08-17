@@ -3,7 +3,7 @@ extern crate log;
 extern crate simplelog;
 extern crate clap;
 extern crate walkdir;
-extern crate crypto;
+extern crate sha2;
 
 use simplelog::{TermLogger, LevelFilter, Config};
 use std::fs::read_dir;

@@ -1,10 +1,9 @@
 use std::path::PathBuf;
 use std::fs::{File, symlink_metadata};
-use std::io::{BufRead, BufReader, Error as IOError};
+use std::io::{BufRead, BufReader, Seek, SeekFrom, Error as IOError};
 
 use walkdir::WalkDir;
-use crypto::sha2::Sha512;
-use crypto::digest::Digest;
+use sha2::{Sha512, Digest};
 
 pub fn recurse_dir(path: PathBuf) -> Vec<PathBuf> {
     let mut files = Vec::<PathBuf>::new();
@@ -27,13 +26,37 @@ pub fn hash_file(file_path: PathBuf) -> Option<String> {
 
     let file_res = File::open(file_path.clone());
 
-    if file_res.is_err() {
-        return None;
+    if let Err(e) = file_res {
+        return Some( format!("{}", e));
     }
 
-    for line in BufReader::new(file_res.unwrap()).lines() {
-        hasher.input_str(line.expect(&format!("ERR: {:?}", file_path.clone())).as_str());
+    let mut file = file_res.unwrap();
+    let mut not_text = false;
+
+    for line_res in BufReader::new(file.try_clone().unwrap()).lines() {
+        if line_res.is_err() {
+            not_text = true;
+            break;
+        }
+
+        hasher.input(line_res.unwrap().as_bytes());
     }
 
-    return Some( hasher.result_str() );
+    // we tried to read the file as text, but found non-text
+    // so we're going to start over hashing it as binary
+    if not_text {
+        file.seek(SeekFrom::Start(0));
+
+        let hash_res = Sha512::digest_reader(&mut file);
+
+        if let Err(e) = hash_res {
+            return Some(format!("{}", e));
+        }
+
+        return Some(format!("{:x}", hash_res.unwrap()));
+    } else {
+        let hash = hasher.result();
+
+        return Some(format!("{:x}", hash));
+    }
 }
