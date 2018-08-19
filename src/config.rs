@@ -49,6 +49,10 @@ impl Configuration {
         return load_config_file(PathBuf::from(config_file), update);
     }
 
+    pub fn update(&self) -> bool {
+        self.update
+    }
+
     pub fn root_dir(&self) -> &PathBuf {
         &self.root_dir
     }
@@ -81,7 +85,7 @@ pub struct ConfigFile {
 }
 
 fn load_config_file(path: PathBuf, update: bool) -> Result<Configuration, IOError> {
-    let file = File::open(path.clone()).unwrap();
+    let file = File::open(path.clone())?;
 
     let config_file: ConfigFile = from_reader(file).unwrap();
 

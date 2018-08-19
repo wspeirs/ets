@@ -9,23 +9,30 @@ extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate serde_yaml;
 extern crate serde_json;
+extern crate chrono;
 
-use simplelog::{TermLogger, LevelFilter, Config};
+use std::io::Error as IOError;
+use std::io::Write;
 use std::path::PathBuf;
 use std::process::exit;
 use std::collections::HashMap;
+use std::fs::File;
+
+use simplelog::{TermLogger, LevelFilter, Config};
+use chrono::{DateTime, Local};
 
 mod config;
 mod file_utils;
 mod range_set;
 mod file_exclude;
-//mod data;
+mod report;
 
 use config::Configuration;
 use file_utils::{recurse_dir, hash_file};
 use file_exclude::FileExclude;
+use report::compute_report;
 
-fn main() {
+fn main() -> Result<(), IOError> {
     TermLogger::init(LevelFilter::Debug, Config::default()).unwrap();
 
     let config = Configuration::new();
@@ -73,14 +80,29 @@ fn main() {
         (file.to_str().unwrap().to_owned(), hash)
     });
 
-    let data = res.clone().filter(|r| r.1.is_ok()).map(|r| (r.0, r.1.ok().unwrap())).collect::<HashMap<_,_>>();
-    let errors = res.clone().filter(|r| r.1.is_err()).map(|r| (r.0, r.1.err().unwrap())).collect::<Vec<_>>();
+    let hashes = res.clone().filter(|r| r.1.is_ok()).map(|r| (r.0, r.1.ok().unwrap())).collect::<HashMap<_,_>>();
+    let errors = res.clone().filter(|r| r.1.is_err()).map(|r| (r.0, r.1.err().unwrap())).collect::<HashMap<_,_>>();
 
-    let json = serde_json::to_string_pretty(&data).unwrap();
 
-//    println!("{}", json);
+    if config.update() {
+        let file = File::create(config.data_file().clone())?;
 
-    for error in errors {
-        println!("Error computing hash for {}: {}", error.0, error.1);
+        serde_json::to_writer_pretty(file, &hashes)?;
+
+        for (file, error) in errors.iter() {
+            println!("Error computing hash for {}: {}", file, error);
+        }
+    } else {
+        let now = Local::now().format("%Y%m%d%H%M%S").to_string();
+        let report_name = format!("{}/ets_report_{}.json", config.report_dir().to_str().unwrap(), now);
+        println!("REPORT NAME: {}", report_name);
+
+        let mut file = File::create(report_name)?;
+
+        let report = compute_report(config.data_file().clone(), hashes, errors)?;
+
+        file.write(report.as_bytes())?;
     }
+
+    Ok( () )
 }
