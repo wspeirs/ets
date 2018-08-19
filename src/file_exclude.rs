@@ -33,4 +33,16 @@ impl FileExclude {
             return FileExclude{file, lines: None};
         }
     }
+
+    pub fn file(&self) -> &PathBuf {
+        &self.file
+    }
+
+    pub fn has_lines(&self) -> bool {
+        self.lines.is_some()
+    }
+
+    pub fn matches_file(&self, file: PathBuf) -> bool {
+        true
+    }
 }

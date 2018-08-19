@@ -12,10 +12,10 @@ use file_exclude::FileExclude;
 pub struct Configuration {
     update: bool,
     root_dir: PathBuf,
-    data_dir: PathBuf,
+    data_file: PathBuf,
     report_dir: PathBuf,
     report_proc: Option<PathBuf>,
-    exclude: Option<Vec<FileExclude>>,
+    excludes: Option<Vec<FileExclude>>,
     ensure: Option<Vec<PathBuf>>
 }
 
@@ -51,7 +51,27 @@ impl Configuration {
     }
 
     pub fn root_dir(&self) -> &PathBuf {
-        return &self.root_dir;
+        &self.root_dir
+    }
+
+    pub fn data_file(&self) -> &PathBuf {
+        &self.data_file
+    }
+
+    pub fn report_dir(&self) -> &PathBuf {
+        &self.report_dir
+    }
+
+    pub fn report_proc(&self) -> &Option<PathBuf> {
+        &self.report_proc
+    }
+
+    pub fn excludes(&self) -> &Option<Vec<FileExclude>> {
+        &self.excludes
+    }
+
+    pub fn ensure(&self) -> &Option<Vec<PathBuf>> {
+        &self.ensure
     }
 }
 
@@ -97,17 +117,23 @@ fn load_config_file(path: PathBuf, update: bool) -> Result<Configuration, IOErro
         return Err(IOError::new(ErrorKind::InvalidInput, "Required parameter exclude is not a list"));
     }
 
-    let excludes = excludes.unwrap().into_iter().map(|e| FileExclude::new(e.as_str().unwrap().to_owned())).collect::<Vec<_>>();
+    let mut excludes = excludes
+        .unwrap()
+        .into_iter()
+        .map(|e| FileExclude::new(e.as_str().unwrap().to_owned()))
+        .collect::<Vec<_>>();
+
+    excludes.sort_unstable_by_key(|e| e.file().to_owned());
 
     println!("{:?}", excludes);
 
     return Ok(Configuration {
         update: update,
         root_dir: PathBuf::from(root_dir.unwrap().as_str().unwrap()),
-        data_dir: PathBuf::from(data_dir.unwrap().as_str().unwrap()),
+        data_file: PathBuf::from(data_dir.unwrap().as_str().unwrap()),
         report_dir: PathBuf::from(report_dir.unwrap().as_str().unwrap()),
         report_proc: None,
-        exclude: Some(excludes),
+        excludes: Some(excludes),
         ensure: None,
     })
 }

@@ -17,7 +17,7 @@ Most-of-the-time you'd run `ets` on a single machine and use it as a way to see 
 
 `root_dir` - (REQUIRED) This is the top-level directory (or directories) that are to be searched during the run. This is typically `/etc` as that is where most configuration files are found on a Linux machine.
 
-`data_dir` - (REQUIRED) The directory where `ets` can save data. What is saved in this directory is the list of files and their corresponding hashes. If you want to create a "golden image" and distribute it to many machines, then copy this directory to all of those machines.
+`data_file` - (REQUIRED) The data file where `ets` saves the data after an `--update` run, or reads the data to compare. What is saved in this file is the list of files and their corresponding hashes. If you want to create a "golden image" and distribute it to many machines, then copy this file to all of those machines.
 
 `report_dir` - (REQUIRED) The directory where reports are saved after each run. Reports are in JSON (compromise between human readable and machine readable), and report all the files that were found to not match between runs.
 
