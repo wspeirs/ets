@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::ops::Range;
 
+#[derive(Debug)]
 pub struct RangeSet {
     ranges: Vec<Range<usize>>
 }

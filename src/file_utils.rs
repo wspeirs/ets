@@ -5,7 +5,7 @@ use std::io::{BufRead, BufReader, Seek, SeekFrom, Error as IOError};
 use walkdir::WalkDir;
 use sha2::{Sha512, Digest};
 
-pub fn recurse_dir(path: PathBuf) -> Vec<PathBuf> {
+pub fn recurse_dir(path: &PathBuf) -> Vec<PathBuf> {
     let mut files = Vec::<PathBuf>::new();
 
     // recurse through the directory skipping any errors silently

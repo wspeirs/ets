@@ -1,20 +1,22 @@
 use clap::{Arg, App, SubCommand};
 
-use std::io::{Read, Error as IOError};
+use std::io::{Read, ErrorKind, Error as IOError};
 use std::io::prelude::BufRead;
 use std::fs::File;
 use std::path::PathBuf;
 use yaml_rust::yaml::Yaml;
 use yaml_rust::YamlLoader;
 
+use file_exclude::FileExclude;
 
 pub struct Configuration {
     update: bool,
-    pub root_dir: PathBuf,
+    root_dir: PathBuf,
     data_dir: PathBuf,
     report_dir: PathBuf,
     report_proc: Option<PathBuf>,
-
+    exclude: Option<Vec<FileExclude>>,
+    ensure: Option<Vec<PathBuf>>
 }
 
 
@@ -41,37 +43,71 @@ impl Configuration {
         let update = matches.is_present("update");
 
         debug!("Using config file: {}", config_file);
-
-        load_config_file(PathBuf::from(config_file));
-
         if update {
             debug!("We are updating the database");
         }
 
-        return Ok(Configuration {
-            update: update,
-            root_dir: PathBuf::from("/etc"),
-            data_dir: PathBuf::from("/tmp/ets_data"),
-            report_dir: PathBuf::from("/tmp/ets_report"),
-            report_proc: None
-        });
+        return load_config_file(PathBuf::from(config_file), update);
+    }
+
+    pub fn root_dir(&self) -> &PathBuf {
+        return &self.root_dir;
     }
 }
 
-fn load_config_file(path: PathBuf) {
+fn load_config_file(path: PathBuf, update: bool) -> Result<Configuration, IOError> {
     let mut file = File::open(path.clone()).unwrap();
 
     let mut contents = String::new();
     file.read_to_string(&mut contents).expect("Error reading config file");
 
-    let config_yaml = YamlLoader::load_from_str(&contents).unwrap();
+    let config_yaml = YamlLoader::load_from_str(&contents).expect("Error parsing Yaml file");
     let config_yaml = &config_yaml[0];
 
     println!("{:?}", config_yaml);
 
-    let hash = config_yaml.as_hash().unwrap();
+    let hash_map = config_yaml.as_hash().unwrap();
 
-    let root_dir = &hash[&Yaml::String(String::from("root_dir"))];
+    let root_dir = hash_map.get(&Yaml::String(String::from("root_dir")));
+    let data_dir = hash_map.get(&Yaml::String(String::from("data_dir")));
+    let report_dir = hash_map.get(&Yaml::String(String::from("report_dir")));
+    let excludes = hash_map.get(&Yaml::String(String::from("exclude")));
+    let ensure = hash_map.get(&Yaml::String(String::from("ensure")));
 
-    println!("{}", root_dir.as_str().unwrap());
+    // make sure all required values are found
+    if root_dir.is_none() {
+        return Err(IOError::new(ErrorKind::NotFound, "Required parameter root_dir not found in config file"));
+    }
+
+    if data_dir.is_none() {
+        return Err(IOError::new(ErrorKind::NotFound, "Required parameter data_dir not found in config file"));
+    }
+
+    if report_dir.is_none() {
+        return Err(IOError::new(ErrorKind::NotFound, "Required parameter report_dir not found in config file"));
+    }
+
+    if excludes.is_none() {
+        return Err(IOError::new(ErrorKind::NotFound, "Required parameter exclude not found in config file"));
+    }
+
+    let excludes = excludes.unwrap().as_vec();
+
+    if excludes.is_none() {
+        return Err(IOError::new(ErrorKind::InvalidInput, "Required parameter exclude is not a list"));
+    }
+
+    let excludes = excludes.unwrap().into_iter().map(|e| FileExclude::new(e.as_str().unwrap().to_owned())).collect::<Vec<_>>();
+
+    println!("{:?}", excludes);
+
+    return Ok(Configuration {
+        update: update,
+        root_dir: PathBuf::from(root_dir.unwrap().as_str().unwrap()),
+        data_dir: PathBuf::from(data_dir.unwrap().as_str().unwrap()),
+        report_dir: PathBuf::from(report_dir.unwrap().as_str().unwrap()),
+        report_proc: None,
+        exclude: Some(excludes),
+        ensure: None,
+    })
 }
