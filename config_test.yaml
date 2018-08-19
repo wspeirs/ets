@@ -1,0 +1,6 @@
+root_dir: /etc
+data_dir: /tmp/ets_data
+report_dir: /tmp/ets_report
+exclude:
+ - /etc/alternatives/*
+

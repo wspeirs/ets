@@ -4,9 +4,9 @@ extern crate simplelog;
 extern crate clap;
 extern crate walkdir;
 extern crate sha2;
+extern crate yaml_rust;
 
 use simplelog::{TermLogger, LevelFilter, Config};
-use std::fs::read_dir;
 use std::path::PathBuf;
 
 mod config;
@@ -24,9 +24,9 @@ fn main() {
     // get all the files we care about
     let files = recurse_dir(config.root_dir);
 
-    for file in files {
-        let hash = hash_file(file.clone());
-
-        println!("{:?}: {}", file, hash);
-    }
+//    for file in files {
+//        let hash = hash_file(file.clone());
+//
+//        println!("{:?}: {}", file, hash);
+//    }
 }

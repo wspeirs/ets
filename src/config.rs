@@ -1,7 +1,11 @@
 use clap::{Arg, App, SubCommand};
 
-use std::io::Error as IOError;
+use std::io::{Read, Error as IOError};
+use std::io::prelude::BufRead;
+use std::fs::File;
 use std::path::PathBuf;
+use yaml_rust::yaml::Yaml;
+use yaml_rust::YamlLoader;
 
 
 pub struct Configuration {
@@ -33,10 +37,12 @@ impl Configuration {
                 .help("Sets the level of verbosity"))
             .get_matches();
 
-        let config_file = matches.value_of("config").unwrap_or("ets.config");
+        let config_file = matches.value_of("config").unwrap_or("config_test.yaml");
         let update = matches.is_present("update");
 
         debug!("Using config file: {}", config_file);
+
+        load_config_file(PathBuf::from(config_file));
 
         if update {
             debug!("We are updating the database");
@@ -50,4 +56,22 @@ impl Configuration {
             report_proc: None
         });
     }
+}
+
+fn load_config_file(path: PathBuf) {
+    let mut file = File::open(path.clone()).unwrap();
+
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).expect("Error reading config file");
+
+    let config_yaml = YamlLoader::load_from_str(&contents).unwrap();
+    let config_yaml = &config_yaml[0];
+
+    println!("{:?}", config_yaml);
+
+    let hash = config_yaml.as_hash().unwrap();
+
+    let root_dir = &hash[&Yaml::String(String::from("root_dir"))];
+
+    println!("{}", root_dir.as_str().unwrap());
 }
