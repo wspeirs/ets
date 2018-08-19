@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 use range_set::{RangeSetBuilder, RangeSet};
+use glob::Pattern;
 
 #[derive(Debug)]
 pub struct FileExclude {
-    file: PathBuf,
+    file_pattern: Pattern,
     lines: Option<RangeSet>
 }
 
@@ -11,7 +12,7 @@ impl FileExclude {
     pub fn new(string: String) -> FileExclude {
         let fields = string.split(":").collect::<Vec<_>>();
 
-        let file = PathBuf::from(fields[0]);
+        let file_pattern = Pattern::new(fields[0]).expect(&format!("Invalid glob pattern: {}", fields[0]));
 
         if fields.len() == 2 {
             let mut rsb = RangeSetBuilder::new();
@@ -28,21 +29,25 @@ impl FileExclude {
                 }
             }
 
-            return FileExclude{file, lines: Some(rsb.build())};
+            return FileExclude{ file_pattern: file_pattern, lines: Some(rsb.build())};
         } else {
-            return FileExclude{file, lines: None};
+            return FileExclude{ file_pattern: file_pattern, lines: None};
         }
-    }
-
-    pub fn file(&self) -> &PathBuf {
-        &self.file
     }
 
     pub fn has_lines(&self) -> bool {
         self.lines.is_some()
     }
 
-    pub fn matches_file(&self, file: PathBuf) -> bool {
-        true
+    pub fn in_lines(&self, line: usize) -> bool {
+        if !self.has_lines() {
+            return true; // with no lines, we exclude all of them
+        } else {
+            return self.lines.as_ref().unwrap().contains(line);
+        }
+    }
+
+    pub fn matches_file(&self, file: &PathBuf) -> bool {
+        self.file_pattern.matches(file.to_str().unwrap())
     }
 }

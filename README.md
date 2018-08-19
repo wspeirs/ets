@@ -25,8 +25,6 @@ Most-of-the-time you'd run `ets` on a single machine and use it as a way to see 
 
 `exclude` - (OPTIONAL) The list of files (full path or basic [glob-style regex](https://en.wikipedia.org/wiki/Glob_(programming))) that should be excluded during the run. You can also specify specific line numbers inside the file by appending a colon and the line numbers separated by commas or ranges with dashes. For example, to exclude lines 5, 7, and the range 13 through 17 in the `my.cnf` file: `my.cnf:5,7,13-17`
 
-`ensure` - (OPTIONAL) The list of files to ensure are found during the scan. If all files are searched and have NOT changed, but the files in the `ensure` section are not found, then `ets` will still report an error during the run.
-
 #### Command Line Options
 
 `--update` - This flag will update the database stored in the `data_dir` in the configuration file. Any existing data will be truncated/removed. This is how you generate the initial database of files and hashes.

@@ -4,8 +4,8 @@ use std::io::{Read, ErrorKind, Error as IOError};
 use std::io::prelude::BufRead;
 use std::fs::File;
 use std::path::PathBuf;
-use yaml_rust::yaml::Yaml;
-use yaml_rust::YamlLoader;
+use serde::{Serialize, Deserialize};
+use serde_yaml::from_reader;
 
 use file_exclude::FileExclude;
 
@@ -15,8 +15,7 @@ pub struct Configuration {
     data_file: PathBuf,
     report_dir: PathBuf,
     report_proc: Option<PathBuf>,
-    excludes: Option<Vec<FileExclude>>,
-    ensure: Option<Vec<PathBuf>>
+    excludes: Vec<FileExclude>,
 }
 
 
@@ -66,74 +65,45 @@ impl Configuration {
         &self.report_proc
     }
 
-    pub fn excludes(&self) -> &Option<Vec<FileExclude>> {
+    pub fn excludes(&self) -> &Vec<FileExclude> {
         &self.excludes
     }
 
-    pub fn ensure(&self) -> &Option<Vec<PathBuf>> {
-        &self.ensure
-    }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ConfigFile {
+    root_dir: PathBuf,
+    data_file: PathBuf,
+    report_dir: PathBuf,
+    report_proc: Option<PathBuf>,
+    exclude: Option<Vec<String>>,
 }
 
 fn load_config_file(path: PathBuf, update: bool) -> Result<Configuration, IOError> {
-    let mut file = File::open(path.clone()).unwrap();
+    let file = File::open(path.clone()).unwrap();
 
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).expect("Error reading config file");
+    let config_file: ConfigFile = from_reader(file).unwrap();
 
-    let config_yaml = YamlLoader::load_from_str(&contents).expect("Error parsing Yaml file");
-    let config_yaml = &config_yaml[0];
+    println!("CONFIG FILE: {:?}", config_file);
 
-    println!("{:?}", config_yaml);
-
-    let hash_map = config_yaml.as_hash().unwrap();
-
-    let root_dir = hash_map.get(&Yaml::String(String::from("root_dir")));
-    let data_dir = hash_map.get(&Yaml::String(String::from("data_dir")));
-    let report_dir = hash_map.get(&Yaml::String(String::from("report_dir")));
-    let excludes = hash_map.get(&Yaml::String(String::from("exclude")));
-    let ensure = hash_map.get(&Yaml::String(String::from("ensure")));
-
-    // make sure all required values are found
-    if root_dir.is_none() {
-        return Err(IOError::new(ErrorKind::NotFound, "Required parameter root_dir not found in config file"));
-    }
-
-    if data_dir.is_none() {
-        return Err(IOError::new(ErrorKind::NotFound, "Required parameter data_dir not found in config file"));
-    }
-
-    if report_dir.is_none() {
-        return Err(IOError::new(ErrorKind::NotFound, "Required parameter report_dir not found in config file"));
-    }
-
-    if excludes.is_none() {
-        return Err(IOError::new(ErrorKind::NotFound, "Required parameter exclude not found in config file"));
-    }
-
-    let excludes = excludes.unwrap().as_vec();
-
-    if excludes.is_none() {
-        return Err(IOError::new(ErrorKind::InvalidInput, "Required parameter exclude is not a list"));
-    }
-
-    let mut excludes = excludes
-        .unwrap()
+    let excludes = if let Some(excludes_strs) = config_file.exclude {
+        excludes_strs
         .into_iter()
-        .map(|e| FileExclude::new(e.as_str().unwrap().to_owned()))
-        .collect::<Vec<_>>();
-
-    excludes.sort_unstable_by_key(|e| e.file().to_owned());
+        .map(|e| FileExclude::new(e.to_owned()))
+        .collect::<Vec<_>>()
+    } else {
+        vec![]
+    };
 
     println!("{:?}", excludes);
 
     return Ok(Configuration {
         update: update,
-        root_dir: PathBuf::from(root_dir.unwrap().as_str().unwrap()),
-        data_file: PathBuf::from(data_dir.unwrap().as_str().unwrap()),
-        report_dir: PathBuf::from(report_dir.unwrap().as_str().unwrap()),
+        root_dir: config_file.root_dir,
+        data_file: config_file.data_file,
+        report_dir: config_file.report_dir,
         report_proc: None,
-        excludes: Some(excludes),
-        ensure: None,
+        excludes: excludes
     })
 }
