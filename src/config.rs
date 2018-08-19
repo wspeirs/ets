@@ -1,7 +1,6 @@
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, App};
 
-use std::io::{Read, ErrorKind, Error as IOError};
-use std::io::prelude::BufRead;
+use std::io::{Error as IOError};
 use std::fs::File;
 use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
@@ -89,8 +88,6 @@ fn load_config_file(path: PathBuf, update: bool) -> Result<Configuration, IOErro
 
     let config_file: ConfigFile = from_reader(file).unwrap();
 
-    println!("CONFIG FILE: {:?}", config_file);
-
     let excludes = if let Some(excludes_strs) = config_file.exclude {
         excludes_strs
         .into_iter()
@@ -100,7 +97,7 @@ fn load_config_file(path: PathBuf, update: bool) -> Result<Configuration, IOErro
         vec![]
     };
 
-    println!("{:?}", excludes);
+    debug!("{:?}", excludes);
 
     return Ok(Configuration {
         update: update,

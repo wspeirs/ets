@@ -56,7 +56,7 @@ mod test {
     #[test]
     pub fn test_create_empty() {
         let mut rsb = RangeSetBuilder::new();
-        let rs = rsb.build();
+        let _ = rsb.build();
     }
 
     #[test]

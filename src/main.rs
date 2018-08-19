@@ -13,13 +13,12 @@ extern crate chrono;
 
 use std::io::Error as IOError;
 use std::io::Write;
-use std::path::PathBuf;
 use std::process::exit;
 use std::collections::HashMap;
 use std::fs::File;
 
 use simplelog::{TermLogger, LevelFilter, Config};
-use chrono::{DateTime, Local};
+use chrono::Local;
 
 mod config;
 mod file_utils;
@@ -29,7 +28,6 @@ mod report;
 
 use config::Configuration;
 use file_utils::{recurse_dir, hash_file};
-use file_exclude::FileExclude;
 use report::compute_report;
 
 fn main() -> Result<(), IOError> {
@@ -47,13 +45,7 @@ fn main() -> Result<(), IOError> {
     // get all the files we care about
     let files = recurse_dir(config.root_dir());
 
-//    for file in files.iter() {
-//        println!("{:?}", file);
-//    }
-
-    println!("BEFORE: {}", files.len());
-
-
+    debug!("BEFORE: {}", files.len());
 
     // filter out any files that match exclusions without lines
     // unfortunately this algorithm is O(n * m) :-|
@@ -62,7 +54,6 @@ fn main() -> Result<(), IOError> {
         .filter(|f| {
             for exclude in config.excludes().iter().filter(|e| !e.has_lines()) {
                 if exclude.matches_file(f) {
-//                    println!("MATCHED: {:?}", f);
                     return false;  // we matched an exclude without lines, so filter it out
                 }
             }
@@ -70,18 +61,19 @@ fn main() -> Result<(), IOError> {
             return true; // didn't find an exclude, so keep it
         }).collect::<Vec<_>>();
 
-    println!("AFTER: {}", files.len());
+    debug!("AFTER: {}", files.len());
 
+    // compute all the hashes
     let res = files.iter().map(|file| {
         let exclude = config.excludes().iter().find(|e| e.matches_file(file));
 
         let hash = hash_file(file, exclude);
 
         (file.to_str().unwrap().to_owned(), hash)
-    });
+    }).collect::<Vec<_>>();
 
-    let hashes = res.clone().filter(|r| r.1.is_ok()).map(|r| (r.0, r.1.ok().unwrap())).collect::<HashMap<_,_>>();
-    let errors = res.clone().filter(|r| r.1.is_err()).map(|r| (r.0, r.1.err().unwrap())).collect::<HashMap<_,_>>();
+    let hashes = res.iter().filter(|r| r.1.is_ok()).cloned().map(|r| (r.0, r.1.ok().unwrap())).collect::<HashMap<_,_>>();
+    let errors = res.iter().filter(|r| r.1.is_err()).cloned().map(|r| (r.0, r.1.err().unwrap())).collect::<HashMap<_,_>>();
 
 
     if config.update() {

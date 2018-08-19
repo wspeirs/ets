@@ -2,7 +2,5 @@ root_dir: /etc
 data_file: /tmp/ets_data
 report_dir: /tmp/ets_report
 exclude:
- - /etc/alternatives/*
- - /etc/passwd:8
- - /etc/shadow:9-12,14,15-18
-
+  - /etc/alternatives/*
+  - /etc/grub.d/*
