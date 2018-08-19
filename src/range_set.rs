@@ -6,31 +6,29 @@ pub struct RangeSet {
 }
 
 pub struct RangeSetBuilder {
-    range_set: RangeSet
+    range_set: Vec<Range<usize>>
 }
 
 
 impl RangeSetBuilder {
     pub fn new() -> RangeSetBuilder {
-        let range_set = RangeSet{ ranges: vec![] };
-
-        return RangeSetBuilder{ range_set };
+        return RangeSetBuilder{ range_set: vec![] };
     }
 
     pub fn add_range(&mut self, range: Range<usize>) -> &mut RangeSetBuilder {
-        self.range_set.ranges.push(range);
+        self.range_set.push(range);
         self
     }
 
     pub fn add(&mut self, num: usize) -> &mut RangeSetBuilder {
-        self.range_set.ranges.push(num..(num+1));
+        self.range_set.push(num..(num+1));
         self
     }
 
-    pub fn build(&mut self) -> &RangeSet {
+    pub fn build(&mut self) -> RangeSet {
         // sort the ranges so it's faster to search
-        self.range_set.ranges.sort_by(|a, b| a.start.cmp(&b.start));
-        &self.range_set
+        self.range_set.sort_by(|a, b| a.start.cmp(&b.start));
+        return RangeSet{ranges: self.range_set.clone()};
     }
 }
 
