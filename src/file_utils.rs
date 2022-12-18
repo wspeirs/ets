@@ -1,11 +1,12 @@
 use std::path::PathBuf;
 use std::fs::{File, symlink_metadata};
-use std::io::{BufRead, BufReader, Seek, SeekFrom};
+use std::io::{BufRead, BufReader, Read, Seek, SeekFrom};
 
+use anyhow::{Context, Result};
 use walkdir::WalkDir;
 use sha2::{Sha512, Digest};
 
-use file_exclude::FileExclude;
+use crate::file_exclude::FileExclude;
 
 pub fn recurse_dir(path: &PathBuf) -> Vec<PathBuf> {
     let mut files = Vec::<PathBuf>::new();
@@ -23,67 +24,58 @@ pub fn recurse_dir(path: &PathBuf) -> Vec<PathBuf> {
     return files;
 }
 
-pub fn hash_file(file_path: &PathBuf, exclude: Option<&FileExclude>) -> Result<String, String> {
+pub fn hash_file(file_path: &PathBuf, exclude: Option<&FileExclude>) -> Result<String> {
     let mut hasher = Sha512::new();
-
-    let file_res = File::open(file_path.clone());
-
-    if let Err(e) = file_res {
-        return Err(format!("{}", e));
-    }
-
-    let mut file = file_res.unwrap();
     let mut not_text = false;
     let mut line_num = 1;
 
     if exclude.is_some() {
-        debug!("EXLUDE FOR: {:?}", file_path);
+        debug!("EXCLUDE FOR: {:?}", file_path);
     }
 
-    // try to hash the file line-by-line so we can exclude lines if needed
-    for line_res in BufReader::new(file.try_clone().unwrap()).lines() {
-        if line_res.is_err() {
-            not_text = true;
-            break;
-        }
+    {
+        let file = File::open(file_path.clone())
+            .with_context(|| format!("Opening {}", file_path.display()))?;
+        let mut file = BufReader::new(file);
 
-        // only hash the line if it's NOT in the exclude set
-        if exclude.is_none() || (exclude.is_some() && !exclude.unwrap().in_lines(line_num)) {
-            hasher.input(line_res.unwrap().as_bytes());
-            hasher.input("\n".as_bytes()); // newlines are stripped, so add them back in
-        }
+        // try to hash the file line-by-line so we can exclude lines if needed
+        for line_res in file.lines() {
+            if line_res.is_err() {
+                not_text = true;
+                break;
+            }
 
-        line_num += 1;
+            // only hash the line if it's NOT in the exclude set
+            if exclude.is_none() || (exclude.is_some() && !exclude.unwrap().in_lines(line_num)) {
+                hasher.update(line_res.unwrap().as_bytes());
+                hasher.update("\n".as_bytes()); // newlines are stripped, so add them back in
+            }
+
+            line_num += 1;
+        }
     }
-
     // we tried to read the file as text, but found non-text
     // so we're going to start over hashing it as binary
     if not_text {
-        warn!("Found non-text for: {:?}", file_path);
+        warn!("Found non-text for: {}", file_path.display());
 
-        file.seek(SeekFrom::Start(0)).expect("Error seeking file");
+        let buffer = std::fs::read(file_path)
+            .with_context(|| format!("Trying to read data-file: {}", file_path.display()))?;
 
-        let hash_res = Sha512::digest_reader(&mut file);
-
-        if let Err(e) = hash_res {
-            return Err(format!("{}", e));
-        }
-
-        return Ok(format!("{:x}", hash_res.unwrap()));
-    } else {
-        let hash = hasher.result();
-
-        return Ok(format!("{:x}", hash));
+        hasher.update(buffer);
     }
+
+    return Ok(format!("{:x}", hasher.finalize()));
 }
 
 
+#[cfg(test)]
 mod test {
     use std::fs::File;
     use std::io::Write;
     use std::path::PathBuf;
 
-    use file_utils::hash_file;
+    use create::file_utils::hash_file;
     use file_exclude::FileExclude;
 
 

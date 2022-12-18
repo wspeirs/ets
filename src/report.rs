@@ -3,7 +3,7 @@ use std::io::{Read, ErrorKind, Error as IOError};
 use std::fs::File;
 use std::path::PathBuf;
 
-
+use anyhow::{Context, Error, Result};
 use serde::{Serialize, Deserialize};
 use serde_json::{from_reader, to_string_pretty};
 
@@ -17,10 +17,12 @@ pub struct Report  {
 
 /// Reads in the data file (JSON), computes the report, and returns the report
 /// Returns the report in JSON
-pub fn compute_report(data_file: PathBuf, hashes: HashMap<String, String>, errors: HashMap<String, String>) -> Result<String, IOError> {
-    let file = File::open(data_file.clone())?;
+pub fn compute_report(data_file: PathBuf, hashes: HashMap<String, String>, errors: HashMap<String, String>) -> Result<String> {
+    let file = File::open(&data_file)
+        .with_context(|| format!("Attempting to open {}", data_file.display()))?;
 
-    let database :HashMap<String, String> = from_reader(file)?;
+    let database :HashMap<String, String> = from_reader(file)
+        .with_context(|| format!("Trying to read JSON file {}", data_file.display()))?;
 
     let mut matches :HashMap<String, String> = HashMap::with_capacity(database.len());
     let mut changed :HashMap<String, String> = HashMap::with_capacity(database.len());

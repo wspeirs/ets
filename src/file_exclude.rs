@@ -1,6 +1,7 @@
 use std::path::PathBuf;
-use range_set::{RangeSetBuilder, RangeSet};
 use glob::Pattern;
+
+use crate::range_set::{RangeSetBuilder, RangeSet};
 
 #[derive(Debug)]
 pub struct FileExclude {

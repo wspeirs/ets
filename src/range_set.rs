@@ -50,8 +50,9 @@ impl RangeSet {
 }
 
 
+#[cfg(test)]
 mod test {
-    use range_set::{RangeSetBuilder};
+    use crate::range_set::RangeSetBuilder;
 
     #[test]
     pub fn test_create_empty() {

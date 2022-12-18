@@ -4,3 +4,4 @@ report_dir: /tmp/ets_report
 exclude:
   - /etc/alternatives/*
   - /etc/grub.d/*
+

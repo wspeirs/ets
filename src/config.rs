@@ -1,12 +1,12 @@
-use clap::{Arg, App};
-
 use std::io::{Error as IOError};
 use std::fs::File;
 use std::path::PathBuf;
-use serde::{Serialize, Deserialize};
+
+use anyhow::{Context, Result};
+use clap::{Arg, App};
 use serde_yaml::from_reader;
 
-use file_exclude::FileExclude;
+use crate::file_exclude::FileExclude;
 
 pub struct Configuration {
     update: bool,
@@ -19,7 +19,7 @@ pub struct Configuration {
 
 
 impl Configuration {
-    pub fn new() -> Result<Configuration, IOError> {
+    pub fn new() -> Result<Configuration> {
         let matches = App::new("ets")
             .version("1.0")
             .author("William Speirs <bill.speirs@gmail.com>")
@@ -83,10 +83,11 @@ pub struct ConfigFile {
     exclude: Option<Vec<String>>,
 }
 
-fn load_config_file(path: PathBuf, update: bool) -> Result<Configuration, IOError> {
-    let file = File::open(path.clone())?;
+fn load_config_file(path: PathBuf, update: bool) -> Result<Configuration> {
+    let file = File::open(&path)
+        .with_context(|| format!("Opening config file {}", path.display()))?;
 
-    let config_file: ConfigFile = from_reader(file).unwrap();
+    let config_file: ConfigFile = from_reader(file)?;
 
     let excludes = if let Some(excludes_strs) = config_file.exclude {
         excludes_strs
@@ -100,11 +101,11 @@ fn load_config_file(path: PathBuf, update: bool) -> Result<Configuration, IOErro
     debug!("{:?}", excludes);
 
     return Ok(Configuration {
-        update: update,
+        update,
         root_dir: config_file.root_dir,
         data_file: config_file.data_file,
         report_dir: config_file.report_dir,
         report_proc: None,
-        excludes: excludes
+        excludes
     })
 }
